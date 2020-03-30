@@ -42,17 +42,14 @@ class Bern(Compress):
     def __init__(self, N):
         self.N = N
 
-    def bern_term(self, n, k, x, x_mapper=None):
+    def bern_term(self, n, k, x):
         """
         Returns the kth order term of a nth degree
         Bernstein polynomial
         """
-        if x_mapper is not None:
-            x = x_mapper(x)
-
         return comb(n, k) * (1 - x) ** (n - k) * x ** k
 
-    def get_bern_sum(self, N, infunc, x_mapper=None):
+    def get_bern_sum(self, N, infunc):
         """
         Performs the appropriate berstein approximation
         expansion and sums up the terms
@@ -73,7 +70,7 @@ class Bern(Compress):
                 x = xin[row_ind, :].flatten()
                 X, K = np.meshgrid(x, k_vec)
                 _, C = np.meshgrid(x, coeff_vec)
-                B = self.bern_term(N, K, X, x_mapper=x_mapper)
+                B = self.bern_term(N, K, X)
 
                 terms = C * B
                 out = np.sum(terms, axis=0)
@@ -85,16 +82,7 @@ class Bern(Compress):
         return bern_sum
 
     def get_fit_func(self, func):
-        f1 = self.get_bern_sum(self.N, func)
-        # return f1
-        f2 = self.get_bern_sum(self.N, func, x_mapper=f1)
-        return f2
-        f3 = self.get_bern_sum(self.N, func, x_mapper=f2)
-        return f3
-#         f_out = lambda x: f3(f2(f1(x)))
-#         return f_out
-
-#         return self.get_bern_sum(self.N, func)
+        return self.get_bern_sum(self.N, func)
 
 
 class Tester:
@@ -145,8 +133,3 @@ class Tester:
 
         delta = yt - yf
         print(f'mean={np.mean(delta)},  std={np.std(delta)}')
-
-
-
-t = Tester()
-t.test_delta()
